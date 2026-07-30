@@ -1,4 +1,4 @@
-## 96-well methods analysis
+# 96-well methods analysis
 1 - Well backgrounds were removed before segmentation by applying an ImageJ macro (Image_analysis_1_cercle_ROi) that automatically generated 96 circular assigned ROIs centered on the wells.
 2 - The outside of the wells are cleared by applying an ImageJ macro (Image_analysis_2_clear_outside_cercle_ROI).
 3 - Explant area was measured over the full stack automatically for each ROI using an ImageJ macro (Image_analysis_3_Analyse_Particles).
