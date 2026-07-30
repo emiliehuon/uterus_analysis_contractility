@@ -1,0 +1,129 @@
+a=724; % Images number
+new_data=zeros(a,96);
+peak_data=zeros(8,12); % create a matrix to store peak count
+tonus_table = NaN(8,12);
+amplitudes_all = NaN(10,96);
+width_all = NaN(10, 96);
+peakInterval_all = NaN(10,96);
+tonus_table_all = NaN(10,96);
+minpeakgrand = 1;
+folder_path = 'C:\Users\Files\Files1\Contractility\ExperimentNumber';
+filename = 'Amplitudes_Well_data_ExperimentNumber_before_drugs'; % Run a second time for "after_drugs"
+sigma = 5;
+start_time = 1; % When you want to start the analysis
+stop_time = 724; % When you want to stop the analysis
+well_titles = {
+    'H2O', 'DMSO', 'Ethanol', 'TTX', 'Z944', 'Ryanodine', '', '', 'Estrogen 0', 'Estrogen 1', 'Estrogen 2', 'Estrogen 3';
+    'H2O', 'DMSO', 'Ethanol', 'TTX', 'Z944', 'Ryanodine', '', '', 'Estrogen 0', 'Estrogen 1', 'Estrogen 2', 'Estrogen 3';
+    'H2O', 'DMSO', 'Ethanol', 'TTX', '2-APB', 'Benzbromarone', '', '', 'Estrogen 0', 'Estrogen 1', 'Estrogen 2', 'Estrogen 3';
+    'H2O', 'DMSO', 'Ethanol', 'TTX', '2-APB', 'Benzbromarone', '', '', 'Estrogen 0', 'Estrogen 1', 'Estrogen 2', 'Estrogen 3';
+    'Nifedipine 0', 'Nifedipine 1', 'Nifedipine 2', '', '', '', '', '', 'Progesteron 0', 'Progesteron 1', 'Progesteron 2', 'Progesteron 3';
+    'Nifedipine 0', 'Nifedipine 1', 'Nifedipine 2', '', '', '', '', '', 'Progesteron 0', 'Progesteron 1', 'Progesteron 2', 'Progesteron 3';
+    'Nifedipine 0', 'Nifedipine 1', 'Nifedipine 2', '', '', '', '', '', 'Progesteron 0', 'Progesteron 1', 'Progesteron 2', 'Progesteron 3';
+    'Nifedipine 0', 'Nifedipine 1', 'Nifedipine 2', '', '', '', '', '', 'Progesteron 0', 'Progesteron 1', 'Progesteron 2', 'Progesteron 3'
+};
+% reorder data
+for i=1:length(data)
+    m=fix((i-1)/a)+1;
+    n=rem(i-1,a)+1;
+    aire(n,m)=data(i,1);
+end 
+ 
+% compute relative area change as ratio to maximum area for each column
+% (sample)
+for i=1:size(aire,2)
+   max_aire(i)=max(aire(:,i)); 
+end
+delta_aire=((max_aire-aire)./max_aire)*100;
+ 
+% find peaks and count them
+for m = 1:8
+    for n = 1:12
+        p = (m-1)*12 + n; % compute index from row and column
+        subplot(8, 12, p)
+        x = linspace(0, 1, a);
+        x_trunced = x(start_time:stop_time);
+        x = x_trunced;
+        y = zeros(a, 1);
+        for i = 1:size(delta_aire, 1)/a
+            start_idx = (i-1)*a + 1;
+            end_idx = min(i*a, size(delta_aire, 1));
+            if end_idx <= start_idx
+                continue;
+            end
+            y_filtered = imgaussfilt(delta_aire(:,p), sigma);
+        end
+        y_trunced = y_filtered(start_time:stop_time);
+        y = y_trunced - min(y_trunced);
+        tonus = mean(y);
+        
+        if (m==1 && n==12) % || (m==8 && n==1) % If you need to adjust the minprominence detection of one well (or more)
+            minpeakprominence = 1;
+        elseif (m==1 && n==12) % || (m==8 && n==1) % If you need to adjust another minprominence detection for another well
+            minpeakprominence = 1;
+        else
+            minpeakprominence = minpeakgrand;
+        end
+        
+        plot(x, y, 'b');
+        hold on;
+        
+        % Frequency
+        findpeaks(y, 'MinPeakProminence', minpeakprominence,'MinPeakWidth',0.01, 'MinPeakDistance',0.01,'Annotate','extents')           
+        [pks,locs,widths,proms] = findpeaks(y, 'MinPeakProminence', minpeakprominence, 'MinPeakWidth',0.01, 'MinPeakDistance',0.01);
+       
+        % Max (relaxation)
+        [max_vals, max_locs] = findpeaks(y, 'MinPeakProminence', minpeakprominence);
+        % Min (contraction)
+        [min_vals, min_locs] = findpeaks(-y, 'MinPeakProminence', minpeakprominence);
+        min_vals = -min_vals;
+ 
+       % Amplitudes and widths
+        num_peaks = min(length(max_locs), length(min_locs));
+        if length(min_locs) >= 1
+            amplitudes = abs(max_vals(1:num_peaks) - min_vals(1:num_peaks));
+        else
+            amplitudes = NaN(size(pks));
+        end
+        
+        % Peak-to-peak interval
+        if length(locs) > 1
+            peakInterval = diff(locs);
+        else
+            peakInterval = NaN;
+        end
+ 
+        % Variables
+        peak_data(m, n) = length(locs); % store peak count in the matrix
+        max_mean_table(m, n) = mean(max_locs); % store mean peak height in the matrix
+        min_mean_table(m, n) = mean(min_locs); % store mean min value in the matrix
+        amplitude_table(m, n) = mean(amplitudes); % calculate and store amplitude in the matrix
+        width_table(m, n) = mean(widths);
+        peakInterval_table(m, n) = mean(peakInterval);
+        tonus_table(m, n) = tonus;
+       
+        group_size = min(10, num_peaks); % Adjust if you analyse really long videos, it will store all contractility_parameter data, one column = one well
+        amplitudes_all(1:group_size, p) = amplitudes(1:group_size); % to check and edit the calculated averages on Excel 1 column = data 1 plot
+        width_all(1:group_size, p) = widths(1:group_size);
+        peakInterval_all(1:length(peakInterval), p) = peakInterval;
+        tonus_table_all(1:group_size, p) = tonus_table(1:group_size);
+        
+        % Figures
+        ylim([0 15]);
+        title(well_titles{m,n}, 'FontSize', 6);
+        box off;
+        legend('off');
+    end
+end
+  
+% save variables
+filename_mat = fullfile(folder_path, [filename, '.mat']);
+filename_fig = fullfile(folder_path, [filename, '.fig']);
+if isfile(filename_mat)% check if file already exists
+    disp('WARNING !!!! Rename file_name !');
+else
+    save(filename_mat, '-mat');
+    set(gcf, 'Units', 'normalized', 'Position', [0 0 1 1]);
+    exportgraphics(gcf, fullfile(folder_path, [filename, '.png']), 'Resolution', 300);
+    savefig(gcf, filename_fig);
+end
