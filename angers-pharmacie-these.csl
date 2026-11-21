@@ -80,9 +80,6 @@
     <text variable="number" prefix="n° "/>
   </macro>
 
-  <macro name="doi">
-    <text variable="DOI" prefix="doi : "/>
-  </macro>
 
   <macro name="revue">
     <choose>
