@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" default-locale="fr-FR" page-range-format="expanded" demote-non-dropping-particle="never">
+  <info>
+    <title>Thèse pharmacie Angers v3 (ISO 690, numérique, 3 auteurs + et al., sans DOI)</title>
+    <title-short>Thèse pharmacie Angers v3</title-short>
+    <id>http://www.zotero.org/styles/these-pharmacie-angers-v3</id>
+    <link href="http://www.zotero.org/styles/these-pharmacie-angers-v3" rel="self"/>
+    <author>
+      <name>Style personnel d'après l'annexe 3 du livret de thèse 2025-2026 (Faculté de Santé d'Angers)</name>
+    </author>
+    <category citation-format="numeric"/>
+    <category field="medicine"/>
+    <summary>Références numérotées par ordre d'apparition ; 3 premiers auteurs puis et al. ; titres de revues en toutes lettres ; thèses et ouvrages avec les éléments demandés par le livret.</summary>
+    <updated>2026-11-21T18:00:00+00:00</updated>
+  </info>
+
+  <!-- Auteurs d'articles : Nom Initiales, 3 premiers puis et al. -->
+  <macro name="auteurs-initiales">
+    <names variable="author">
+      <name name-as-sort-order="all" sort-separator=" " initialize-with="" delimiter=", " delimiter-precedes-et-al="always" et-al-min="4" et-al-use-first="3"/>
+      <et-al term="et-al"/>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="publisher"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <!-- Auteurs de thèses et d'ouvrages : Nom, Prénom (complet) -->
+  <macro name="auteurs-complets">
+    <names variable="author">
+      <name name-as-sort-order="all" sort-separator=", " delimiter=" ; " delimiter-precedes-et-al="always" et-al-min="4" et-al-use-first="3"/>
+      <et-al term="et-al"/>
+      <substitute>
+        <names variable="editor"/>
+        <text variable="publisher"/>
+      </substitute>
+    </names>
+  </macro>
+
+  <macro name="annee">
+    <date variable="issued">
+      <date-part name="year"/>
+    </date>
+  </macro>
+
+  <macro name="nb-pages">
+    <text variable="number-of-pages" suffix=" p"/>
+  </macro>
+
+  <macro name="edition">
+    <choose>
+      <if variable="edition">
+        <choose>
+          <if is-numeric="edition">
+            <group delimiter=" ">
+              <number variable="edition" form="ordinal"/>
+              <text value="éd"/>
+            </group>
+          </if>
+          <else>
+            <text variable="edition"/>
+          </else>
+        </choose>
+      </if>
+    </choose>
+  </macro>
+
+  <macro name="lieu-editeur-annee">
+    <group delimiter=", ">
+      <group delimiter=" : ">
+        <text variable="publisher-place"/>
+        <text variable="publisher"/>
+      </group>
+      <text macro="annee"/>
+    </group>
+  </macro>
+
+  <macro name="numero-soutenance">
+    <text variable="number" prefix="n° "/>
+  </macro>
+
+  <macro name="revue">
+    <choose>
+      <if variable="container-title">
+        <text variable="container-title" font-style="italic"/>
+      </if>
+      <else>
+        <text variable="publisher" font-style="italic"/>
+      </else>
+    </choose>
+  </macro>
+
+  <citation collapse="citation-number">
+    <sort>
+      <key variable="citation-number"/>
+    </sort>
+    <layout prefix="(" suffix=")" delimiter=",">
+      <text variable="citation-number"/>
+    </layout>
+  </citation>
+
+  <bibliography entry-spacing="0" et-al-min="4" et-al-use-first="3">
+    <layout suffix=".">
+      <text variable="citation-number" suffix=". "/>
+      <choose>
+        <!-- Thèse : Nom, Prénom. Titre. Date. Nb pages. Nature : discipline. Université. Ville. N° -->
+        <if type="thesis">
+          <group delimiter=". ">
+            <text macro="auteurs-complets"/>
+            <text variable="title"/>
+            <text macro="annee"/>
+            <text macro="nb-pages"/>
+            <text variable="genre" font-style="italic"/>
+            <text variable="publisher"/>
+            <text variable="publisher-place"/>
+            <text macro="numero-soutenance"/>
+          </group>
+        </if>
+        <!-- Ouvrage : Nom, Prénom. Titre. N° éd. Lieu : éditeur, année. Nb pages -->
+        <else-if type="book">
+          <group delimiter=". ">
+            <text macro="auteurs-complets"/>
+            <text variable="title"/>
+            <text macro="edition"/>
+            <text macro="lieu-editeur-annee"/>
+            <text macro="nb-pages"/>
+          </group>
+        </else-if>
+        <!-- Chapitre d'ouvrage -->
+        <else-if type="chapter">
+          <group delimiter=". ">
+            <text macro="auteurs-complets"/>
+            <text variable="title"/>
+            <group delimiter=" ">
+              <text term="in" text-case="capitalize-first" suffix=" :"/>
+              <text variable="container-title"/>
+            </group>
+            <text macro="edition"/>
+            <text macro="lieu-editeur-annee"/>
+            <text variable="page" prefix="p. "/>
+          </group>
+        </else-if>
+        <!-- Page web / document en ligne -->
+        <else-if type="webpage post-weblog" match="any">
+          <group delimiter=". ">
+            <text macro="auteurs-complets"/>
+            <group delimiter=" ">
+              <text variable="title"/>
+              <text value="[en ligne]"/>
+            </group>
+            <text variable="URL"/>
+            <group delimiter=" ">
+              <text value="consulté le"/>
+              <date variable="accessed" form="text"/>
+            </group>
+          </group>
+        </else-if>
+        <!-- Article de périodique, préprint et autres : Nom Initiales. Titre. Revue. Année;vol(n°):pages -->
+        <else>
+          <group delimiter=". ">
+            <text macro="auteurs-initiales"/>
+            <text variable="title"/>
+            <group delimiter=". ">
+              <text macro="revue"/>
+              <group>
+                <text macro="annee"/>
+                <text variable="volume" prefix=";"/>
+                <text variable="issue" prefix="(" suffix=")"/>
+                <text variable="page" prefix=":"/>
+              </group>
+            </group>
+          </group>
+        </else>
+      </choose>
+    </layout>
+  </bibliography>
+</style>
